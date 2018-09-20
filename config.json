@@ -1,0 +1,37 @@
+{
+"ADMINDB":[
+		{"ADMIN": "officebox_admin_hfi"}
+		 ],
+"SADB":	[
+	{"SA": "hfisa_10000000000000255"}
+		],
+"STDB":[
+	{"ST": "hfist_10000000000000255_10000000000019315_10000000000019681"}
+	],
+
+"SWDB": [
+		{"SW": "hfisw_10000000000000255"}
+	],
+
+"MySQLServer":[
+		{"DBHost": "localhost"}
+	],
+			
+"MySQLUserName":[
+		{"UserName": "root"}
+	],
+
+"MySQLPassword":[
+		{"Password": "admin"}
+	],
+				
+"DatabaseBackupPath":[
+		{"Path": "D:\\OB\\After_dployed\\DATA_BACKUP\\"}
+	],
+"WithTrigger":
+	{
+		"isTrigger":"NO"
+	}
+}
+		
+
