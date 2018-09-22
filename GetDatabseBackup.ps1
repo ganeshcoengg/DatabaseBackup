@@ -5,7 +5,7 @@ $ADMINDATABASE = $JsonObject.ADMINDB
 $SADATABASE = $JsonObject.SADB
 $STDATABASE = $JsonObject.STDB
 $SWDATABASE = $JsonObject.SWDB
-$BackupPath	=	$JsonObject.DatabaseBackupPath.Path	
+$BackupPath	= $JsonObject.DatabaseBackupPath.Path	
 $HostName = $JsonObject.MySQLServer
 $password = $JsonObject.MySQLPassword
 $userName = $JsonObject.MySQLUserName
@@ -27,8 +27,6 @@ LogWrite "Start ==> Database Backup Started!"
 Function GetDatabaseBackup {
     Param([string] $DBName
     )
-    
-
     $date = ((Get-Date).ToString('yyyyMMddHHmm'))
     $separater = $date+'_'
     Write-Host "$DBName Backup Started..." -NoNewline
@@ -63,7 +61,6 @@ function ConvertToRAR {
     $FileName = "mysqldumpIndiDB_$filedate"
     $date = ((Get-Date).ToString('yyyyMMdd'))
     $separater = "_"
-
     & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
 }
 
