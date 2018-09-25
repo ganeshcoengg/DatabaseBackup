@@ -18,10 +18,11 @@ $userName = $JsonObject.MySQLUserName
 $logpath = Get-Location
 $logfile = $logpath.Path+"\"+((Get-Date).ToString('MMdd'))+'DatabaseBackupLogs.txt'
 $isTriggers = $JsonObject.WithTrigger.isTrigger
-$user = $userName.UserName	    
+$user = $userName.UserName
 $pw = $password.Password
 $pass = "-p$pw"
-$DBServer = $HostName.DBHost    
+$DBServer = $HostName.DBHost
+
 # Validation of Input 
 # 1. Check Json file is Error free
 # 2. Test the Database path is configured or not
@@ -34,7 +35,7 @@ function LogWrite {
     Add-Content $logfile -Value $string
 }
 
-LogWrite "Start ==> Database Backup Started!" 
+LogWrite "Start ==> Database Backup Started!"
 Function GetDatabaseBackup {
     Param([string] $DBName
     )
@@ -62,6 +63,7 @@ Function GetDatabaseBackup {
 
 function ConvertToRAR {
     #Set rar path 
+    Write-Host "Creating RAR..."
     try{
         if (Test-Path -path  "C:\Program Files (x86)\WinRAR\Rar.exe"){
             $rar = "C:\Program Files (x86)\WinRAR\Rar.exe"
@@ -80,25 +82,21 @@ function ConvertToRAR {
     }
 }
 
-# RUN Admin DB backup Script 
+
+
 foreach($AdminDatabaseName in $ADMINDATABASE){		
     GetDatabaseBackup $AdminDatabaseName.ADMIN
 }
 
-# RUN SA DB backup Script 
 foreach($SADatabaseName in $SADATABASE){		
     GetDatabaseBackup $SADatabaseName.SA
 }
 
-# RUN ST DB backup Script 
 foreach($STDatabaseName in $STDATABASE){
     GetDatabaseBackup $STDatabaseName.ST
 }
 
-# RUN SW DB backup Script 
 foreach($SWDatabaseName in $SWDATABASE){
     GetDatabaseBackup $SWDatabaseName.SW
 }
-# Get the RAR file 
-Write-Host "Creating RAR..." -NoNewline
 ConvertToRAR
