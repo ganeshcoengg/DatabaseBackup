@@ -1,6 +1,12 @@
 #Start:: Set the default parameters 
-$JsonData = (Get-Content ".\config.json" -Raw)
-$JsonObject = ConvertFrom-Json -InputObject $JsonData
+try{
+    $JsonData = (Get-Content ".\config.json" -Raw)
+    $JsonObject = ConvertFrom-Json -InputObject $JsonData -ErrorAction Stop
+}
+catch {
+    Write-Host "Check the Json file" -ForegroundColor Red
+}
+
 $ADMINDATABASE = $JsonObject.ADMINDB
 $SADATABASE = $JsonObject.SADB
 $STDATABASE = $JsonObject.STDB
@@ -15,7 +21,12 @@ $isTriggers = $JsonObject.WithTrigger.isTrigger
 $user = $userName.UserName	    
 $pw = $password.Password
 $pass = "-p$pw"
-$DBServer = $HostName.DBHost
+$DBServer = $HostName.DBHost    
+# Validation of Input 
+# 1. Check Json file is Error free
+# 2. Test the Database path is configured or not
+# 3. Test given "WithTrigger" value is  right or not
+
 function LogWrite {
     param ([String]$logString)
     $time = Get-Date
@@ -30,7 +41,7 @@ Function GetDatabaseBackup {
     $date = ((Get-Date).ToString('yyyyMMddHHmm'))
     $separater = $date+'_'
     Write-Host "$DBName Backup Started..." -NoNewline
-    if($isTriggers -eq "YES"){
+    if($isTriggers.ToUpper() -eq "YES"){
         $ErrorLog = & cmd.exe /c "mysqldump -h $DBServer -u $user $pass --databases $DBName > $Backuppath$separater$DBName.sql"
     }
     else {
@@ -51,17 +62,22 @@ Function GetDatabaseBackup {
 
 function ConvertToRAR {
     #Set rar path 
-    if (Test-Path -path  "C:\Program Files (x86)\WinRAR\Rar.exe"){
-        $rar = "C:\Program Files (x86)\WinRAR\Rar.exe"
+    try{
+        if (Test-Path -path  "C:\Program Files (x86)\WinRAR\Rar.exe"){
+            $rar = "C:\Program Files (x86)\WinRAR\Rar.exe"
+        }
+        else{
+            $rar = "C:\Program Files\WinRAR\Rar.exe"
+        }
+        $filedate = ((Get-Date).ToString('yyyyMMddHHmm'))
+        $FileName = "mysqldumpIndiDB_$filedate"
+        $date = ((Get-Date).ToString('yyyyMMdd'))
+        $separater = "_"
+        & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
     }
-    else{
-        $rar = "C:\Program Files\WinRAR\Rar.exe"
+    catch {
+        Write-Host $Backuppath$date*$separater*.sql "Not avaiable" -foregroundcolor Red
     }
-    $filedate = ((Get-Date).ToString('yyyyMMddHHmm'))
-    $FileName = "mysqldumpIndiDB_$filedate"
-    $date = ((Get-Date).ToString('yyyyMMdd'))
-    $separater = "_"
-    & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
 }
 
 # RUN Admin DB backup Script 
@@ -86,4 +102,3 @@ foreach($SWDatabaseName in $SWDATABASE){
 # Get the RAR file 
 Write-Host "Creating RAR..." -NoNewline
 ConvertToRAR
-Write-Host "Done!" -ForegroundColor Green
