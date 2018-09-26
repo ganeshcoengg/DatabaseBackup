@@ -4,7 +4,8 @@ try{
     $JsonObject = ConvertFrom-Json -InputObject $JsonData -ErrorAction Stop
 }
 catch {
-    Write-Host "Check the Json file" -ForegroundColor Red
+    Write-Host "Please correct Json file parameters." -ForegroundColor Red
+    exit
 }
 
 $ADMINDATABASE = $JsonObject.ADMINDB
@@ -59,7 +60,7 @@ Function GetDatabaseBackup {
         Write-Host "$DBName DATABASE BACKUP FAILED" -ForegroundColor Red
         LogWrite "ERROR :- $DBName DATABASE BACKUP HAS BEEN FAILED - $ErrorLog !!"
     }
-}	
+}
 
 function ConvertToRAR {
     #Set rar path 
@@ -75,14 +76,21 @@ function ConvertToRAR {
         $FileName = "mysqldumpIndiDB_$filedate"
         $date = ((Get-Date).ToString('yyyyMMdd'))
         $separater = "_"
-        & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
+        $dirInfo = Get-ChildItem $BackupPath
+        if($dirinfo.Length -eq 0){
+            throw [System.IO.FileNotFoundException] "File not founnd"           #throw an exception if sql file not created for rar 
+        }
+        else{
+            & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
+        }
     }
-    catch {
-        Write-Host $Backuppath$date*$separater*.sql "Not avaiable" -foregroundcolor Red
+    catch [System.IO.FileNotFoundException]{
+        Write-Host "Database sql file not avaiable for Rar" -foregroundcolor Red
+    }
+    catch{
+        Write-Host "An Error has occured!"
     }
 }
-
-
 
 foreach($AdminDatabaseName in $ADMINDATABASE){		
     GetDatabaseBackup $AdminDatabaseName.ADMIN
