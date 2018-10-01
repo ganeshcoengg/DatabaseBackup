@@ -5,7 +5,7 @@ try{
 }
 catch {
     Write-Host "Please correct Json file parameters." -ForegroundColor Red
-    exit
+    Exit-PSSession
 }
 
 $ADMINDATABASE = $JsonObject.ADMINDB
