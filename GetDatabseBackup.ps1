@@ -30,13 +30,19 @@ $DBServer = $HostName.DBHost
 # 3. Test given "WithTrigger" value is  right or not
 
 function LogWrite {
-    param ([String]$logString)
+    param ([String]$logString,
+    [bool] $iserror = $false)
     $time = Get-Date
-    $string = '*** ' +$time.ToString() +' == '+ $logString
+    if($iserror){
+        $string = '*** ' +$time.ToString() +' == ERROR == '+ $logString
+    }
+    else{
+        $string = '*** ' +$time.ToString() +' == '+ $logString
+    }
     Add-Content $logfile -Value $string
 }
 
-LogWrite "Start ==> Database Backup Started!"
+LogWrite "Database Backup Started!"
 Function GetDatabaseBackup {
     Param([string] $DBName
     )
@@ -44,9 +50,11 @@ Function GetDatabaseBackup {
     $separater = $date+'_'
     Write-Host "$DBName Backup Started..." -NoNewline
     if($isTriggers.ToUpper() -eq "YES"){
+        LogWrite "$DBName Backup Started with Triggers"
         $ErrorLog = & cmd.exe /c "mysqldump -h $DBServer -u $user $pass --databases $DBName > $Backuppath$separater$DBName.sql"
     }
     else {
+        LogWrite "$DBName Backup Started without Triggers"
         $ErrorLog = & cmd.exe /c "mysqldump -h $DBServer -u $user $pass --databases $DBName --skip-triggers > $Backuppath$separater$DBName.sql"
     }
 
@@ -58,13 +66,14 @@ Function GetDatabaseBackup {
     else{
         $ErrorLog= $Error[0].Exception.Message 
         Write-Host "$DBName DATABASE BACKUP FAILED" -ForegroundColor Red
-        LogWrite "ERROR :- $DBName DATABASE BACKUP HAS BEEN FAILED - $ErrorLog !!"
+        LogWrite "$DBName DATABASE BACKUP HAS BEEN FAILED - $ErrorLog !!" $true
     }
 }
 
 function ConvertToRAR {
     #Set rar path 
     Write-Host "Creating RAR..."
+    LogWrite "Creating RAR..."
     try{
         if (Test-Path -path  "C:\Program Files (x86)\WinRAR\Rar.exe"){
             $rar = "C:\Program Files (x86)\WinRAR\Rar.exe"
@@ -78,6 +87,7 @@ function ConvertToRAR {
         $separater = "_"
         $dirInfo = Get-ChildItem $BackupPath
         if($dirinfo.Length -eq 0){
+            LogWrite "File not founnd" True
             throw [System.IO.FileNotFoundException] "File not founnd"           #throw an exception if sql file not created for rar 
         }
         else{
@@ -86,25 +96,35 @@ function ConvertToRAR {
     }
     catch [System.IO.FileNotFoundException]{
         Write-Host "Database sql file not avaiable for Rar" -foregroundcolor Red
+        LogWrite "Database sql file not avaiable for Rar" $true
     }
     catch{
         Write-Host "An Error has occured!"
+        LogWrite "An Error has Occured! System Error." $true
     }
 }
 
-foreach($AdminDatabaseName in $ADMINDATABASE){		
-    GetDatabaseBackup $AdminDatabaseName.ADMIN
+foreach($AdminDatabaseName in $ADMINDATABASE){	
+    $admindatabase = $AdminDatabaseName.ADMIN
+    LogWrite "$admindatabase database Back Starting..."	
+    GetDatabaseBackup $admindatabase
 }
 
-foreach($SADatabaseName in $SADATABASE){		
-    GetDatabaseBackup $SADatabaseName.SA
+foreach($SADatabaseName in $SADATABASE){
+    $sadatabase = $SADatabaseName.SA
+    LogWrite "$sadatabase database Back Starting..."	
+    GetDatabaseBackup $sadatabase
 }
 
 foreach($STDatabaseName in $STDATABASE){
-    GetDatabaseBackup $STDatabaseName.ST
+    $stdatabase = $STDatabaseName.ST
+    LogWrite "$stdatabase database Back Starting..."	
+    GetDatabaseBackup $stdatabase
 }
 
 foreach($SWDatabaseName in $SWDATABASE){
-    GetDatabaseBackup $SWDatabaseName.SW
+    $swdatabase = $SWDatabaseName.SW
+    LogWrite "$swdatabase database Back Starting..."	
+    GetDatabaseBackup $swdatabase
 }
 ConvertToRAR
