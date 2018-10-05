@@ -64,7 +64,7 @@ Function GetDatabaseBackup {
         LogWrite "$DBName Seployment database backup successfully completed!!"
     }
     else{
-        $ErrorLog= $Error[0].Exception.Message 
+        $ErrorLog = $Error[0].Exception.Message 
         Write-Host "$DBName DATABASE BACKUP FAILED" -ForegroundColor Red
         LogWrite "$DBName DATABASE BACKUP HAS BEEN FAILED - $ErrorLog !!" $true
     }
@@ -87,11 +87,21 @@ function ConvertToRAR {
         $separater = "_"
         $dirInfo = Get-ChildItem $BackupPath
         if($dirinfo.Length -eq 0){
-            LogWrite "File not founnd" True
-            throw [System.IO.FileNotFoundException] "File not founnd"           #throw an exception if sql file not created for rar 
+            LogWrite "File not founnd" $true
+            throw [System.IO.FileNotFoundException]  "File not found"         #throw an exception if sql file not created for rar 
         }
         else{
-            & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
+            $ErrorLog =  & $rar u -r $Backuppath$FileName.rar $Backuppath$date*$separater*.sql
+
+            if($?){
+                Write-Host "RAR has created!"
+                LogWrite "RAR has created!"
+            }
+            else{
+                $ErrorLog = $Error[0].Exception.Message 
+                Write-Host "Creattion RAR failed" -ForegroundColor Red
+                LogWrite "Creattion RAR failed $ErrorLog" $true
+            }
         }
     }
     catch [System.IO.FileNotFoundException]{
@@ -99,7 +109,7 @@ function ConvertToRAR {
         LogWrite "Database sql file not avaiable for Rar" $true
     }
     catch{
-        Write-Host "An Error has occured!"
+        Write-Host "An Error has occured!" -ForegroundColor Red
         LogWrite "An Error has Occured! System Error." $true
     }
 }
